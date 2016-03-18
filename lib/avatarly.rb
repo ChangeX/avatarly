@@ -19,7 +19,7 @@ class Avatarly
       if opts[:lang]
         text = UnicodeUtils.upcase(initials(text.to_s.strip.gsub(/[^[[:word:]] ]/,'')), opts[:lang])
       else
-        text = initials(text.to_s.strip.gsub(/[^\w ]/,'')).upcase
+        text = initials(text.to_s.strip.gsub(/[^[[:word:]] ]/,'')).upcase
       end
       generate_image(text, parse_options(opts)).to_blob
     end
