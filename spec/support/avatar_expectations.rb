@@ -3,26 +3,22 @@ module AvatarExpectations
     File.expand_path("../../fixtures/#{name}", __FILE__)
   end
 
-  def assert_image_equality(actual_image_blob, expected_image_name, hamming_distance = 2)
-    actual_image_path = resource_file('temp_generated_image.png')
+  # Compares a generated image against a reference fixture.
+  # Uses pixel-by-pixel comparison and calculates how different the images are.
+  # A distortion of 0 means identical images, 1 means completely different.
+  def assert_image_equality(actual_image_blob, expected_image_name, threshold = 0.1)
     expected_image_path = resource_file("#{expected_image_name}.png")
 
-    File.open(actual_image_path, 'wb') do |f|
-      f.write actual_image_blob
+    actual_image = Magick::Image.from_blob(actual_image_blob).first
+    expected_image = Magick::Image.read(expected_image_path).first
+
+    _, distortion = actual_image.compare_channel(expected_image, Magick::MeanSquaredErrorMetric)
+
+    unless distortion <= threshold
+      puts "Image distortion: #{distortion}. Required at most #{threshold}."
     end
 
-    actual_image = Phashion::Image.new(actual_image_path)
-    expected_image = Phashion::Image.new(expected_image_path)
-
-    result = actual_image.duplicate?(expected_image, threshold: hamming_distance)
-
-    unless result
-      puts "Hamming distance between two images: #{actual_image.distance_from(expected_image)}. Required at least #{hamming_distance}."
-    end
-
-    expect(result).to be true
-
-    File.delete(actual_image_path)
+    expect(distortion).to be <= threshold
   end
 
   def assert_image_format(image, format)

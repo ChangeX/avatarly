@@ -1,5 +1,5 @@
 require 'rvg/rvg'
-require 'rfc822'
+require 'uri'
 require 'pathname'
 require 'unicode_utils'
 
@@ -59,7 +59,7 @@ class Avatarly
     def initials(text, opts)
       if opts[:separator]
         initials_for_separator(text, opts[:separator])
-      elsif text.is_email?
+      elsif text =~ URI::MailTo::EMAIL_REGEXP
         initials_for_separator(text.split("@").first, ".")
       elsif text.include?(" ")
         initials_for_separator(text, " ")
